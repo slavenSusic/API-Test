@@ -2,12 +2,14 @@
 import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.API_BASE_URL;
+const { API_BASE_URL, UI_BASE_URL } = process.env;
 
-if (!baseURL) {
-  throw new Error(
-    'API_BASE_URL is required. See .env.example for the expected value.',
-  );
+for (const [name, value] of Object.entries({ API_BASE_URL, UI_BASE_URL })) {
+  if (!value) {
+    throw new Error(
+      `${name} is required. See .env.example for the expected value.`,
+    );
+  }
 }
 
 /**
@@ -24,57 +26,39 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [["line"], ["allure-playwright"]],
+  reporter: [['line'], ['allure-playwright']],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    baseURL,
-
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
   },
 
-  /* Configure projects for major browsers */
   projects: [
+    /* API tests need no browser, so they run once instead of once per browser. */
+    {
+      name: 'api',
+      testDir: './tests/api',
+      use: { baseURL: API_BASE_URL },
+    },
+
+    /* UI tests against major browsers. */
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      testDir: './tests/ui',
+      use: { ...devices['Desktop Chrome'], baseURL: UI_BASE_URL },
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      testDir: './tests/ui',
+      use: { ...devices['Desktop Firefox'], baseURL: UI_BASE_URL },
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      testDir: './tests/ui',
+      use: { ...devices['Desktop Safari'], baseURL: UI_BASE_URL },
     },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
 });

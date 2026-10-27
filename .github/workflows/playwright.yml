@@ -19,9 +19,12 @@ jobs:
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       run: npx playwright test
+      env:
+        API_BASE_URL: https://jsonplaceholder.typicode.com
+        UI_BASE_URL: https://testautomationpractice.blogspot.com
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
-        name: playwright-report
-        path: playwright-report/
+        name: allure-results
+        path: allure-results/
         retention-days: 30
