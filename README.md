@@ -148,6 +148,7 @@ Both Allure directories are excluded from Git and should remain local build arti
 - Assertions are web-first (`await expect(locator)...`), so they wait and retry; there are no fixed sleeps.
 - Third-party services are stubbed with `page.route`/`context.route` (Wikipedia search, sites opened in new windows), so a test fails only when the practice site breaks. The one exception is the broken-links check, which calls the real links and runs in Chromium only.
 - The AJAX test uses Playwright's fake clock to skip the page's 3-second delay.
+- The site rate-limits repeated page loads (Google answers 429 to CI runners), so each test worker downloads every page once per run and serves later visits from memory.
 - Visitors from the EU get a Google cookie notice that covers the page. A locator handler removes it instead of clicking "OK", so tests never give consent.
 
 ## Troubleshooting
